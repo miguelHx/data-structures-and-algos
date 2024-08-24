@@ -51,7 +51,7 @@ def find_anagrams_brute_force(s: str, dictionary: Set[str]) -> Set[str]:
                 output.add(combined)
     return output
 
-class TestZeroMatrixFunction(unittest.TestCase):
+class TestFindAnagramsFunction(unittest.TestCase):
 
     def setUp(self):
         self.cases = [

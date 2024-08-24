@@ -51,7 +51,7 @@ def find_intersection_extended(lists: List[List[int]]) -> List[int]:
     return inter       
 
 
-class TestZeroMatrixFunction(unittest.TestCase):
+class TestFindIntersectionFunction(unittest.TestCase):
 
     def setUp(self):
         self.two_list_cases = [
