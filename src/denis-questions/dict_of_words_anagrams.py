@@ -21,7 +21,29 @@ time complexity becomes (m choose r) * m * s * log(s))
 overall, this becomes O(n! * n + (m choose r) * m * s * log(s)) => O(n! * n) for brute force
 space is O(m) at most
 
-todo next:  come up with a way to improve the runtime
+
+thinking about doing some pre-processing on the dictionary.
+turn it into a trie, then the algo for searching words would be
+for each letter in input string, find words from the dict that contain letters in input string
+and length less than input string.  Add these to a list of found words that can be potential
+anagrams.
+
+runtime:
+building trie data structure ahead of time:  O(n * m), where n is the number of words to insert,
+and m is the average length of words
+
+search for potential anagram words in dict: this would be O(s^2) where s is the length of the input string.
+s^2 because for each letter in s, it can take on average s time.
+
+next part is from what potential words we found in the input string from the dictionary,
+use the words from the list to look for anagrams
+We can still use the brute force combinations of equal length to input string and run is_anagram algo.
+Instead of sorting for anagram, can use counting method.
+This means next part will be O((m choose r) * m * s)
+Overall,
+time complexity (assuming that initial O(n*m) for building trie is done once):
+    O(s^2 + (m choose r) * m * s) => O((m choose r) * m * s)
+the combos part is the bottleneck. improved from factorial to exponential.
 """
 
 
