@@ -100,6 +100,8 @@ def bfs(root: Node) -> List[int]:
     Returns:
         List[int]: List[int]: list of node IDs (i.e. [0, 1, 4])
     """
+    if root is None:
+        raise TypeError
     visited_list: List[int] = [root.id]
     root.visited = True
     queue: Deque[Node] = deque([root])
@@ -184,7 +186,11 @@ class TestGraph(unittest.TestCase):
         g = Graph([n0, n1, n2, n3, n4, n5, n6, n7])
         g.reset_visited()
         self.assertEqual(bfs(n0), [0, 1, 4, 5, 3, 6, 7, 2])
-
+    
+    def test_raise_type_error(self):
+        self.assertRaises(TypeError, dfs, None)
+        self.assertRaises(TypeError, dfs_stack, None)
+        self.assertRaises(TypeError, bfs, None)
 
 
 if __name__ == '__main__':
