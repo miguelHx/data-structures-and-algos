@@ -35,6 +35,22 @@ and m is the average length of words
 search for potential anagram words in dict: this would be O(s^2) where s is the length of the input string.
 s^2 because for each letter in s, it can take on average s time.
 
+wait, no, i'm wrong.  It wouldn't be s^2. 
+One way to do it is a tree walk of the trie, using the
+letters in the input string to find all possible words in the dictionary.
+Let s be the size of input string.
+Let d be the average length of a dictionary word.
+Let w be the number of words in the dictionary
+We can put each letter of input string into a set.
+Then, for each letter, do a trie tree walk of all possible words that have 
+consecutive letters existing in s.
+time complexity would be O(s * d * w) 
+because for each letter, we are searching
+for all possible words from s, we could find up to w words or a fraction of,
+that took an average of d to find each one
+space complexity would be O(w + s)
+
+
 next part is from what potential words we found in the input string from the dictionary,
 use the words from the list to look for anagrams
 We can still use the brute force combinations of equal length to input string and run is_anagram algo.
@@ -79,7 +95,7 @@ class TestFindAnagramsFunction(unittest.TestCase):
         self.cases = [
             (
                 'levity',
-                set(['let', 'ivy', 'tel', 'it', 'levy']),
+                set(['let', 'ivy', 'tel', 'it', 'levy', 'lee', 'levyyyy']),
                 set(['letivy', 'itlevy', 'ivytel'])
             )
         ]
