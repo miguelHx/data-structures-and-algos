@@ -9,24 +9,6 @@ from collections import deque
 from dataclasses import dataclass
 from typing import List, Deque, Set
 
-
-@dataclass
-class Graph:
-    nodes: 'List[Node]'
-
-    def print_graph(self):
-        for node in self.nodes:
-            node.print_children()
-
-    def reset_visited(self):
-        for node in self.nodes:
-            node.visited = False
-
-    def detect_cycles(self):
-      # TODO
-      pass
-
-
 @dataclass
 class Node:
     id: int
@@ -43,6 +25,62 @@ class Node:
     def __str__(self):
         return f'Node ({self.id})'
 
+
+@dataclass
+class Graph:
+    nodes: 'List[Node]'
+
+    def print_graph(self):
+        for node in self.nodes:
+            node.print_children()
+
+    def reset_visited(self):
+        for node in self.nodes:
+            node.visited = False
+
+    def detect_cycles_util(self, n: Node, visited: Set, rec_stack: Set) -> bool:
+        if n.id not in visited:
+            visited.add(n.id)
+            rec_stack.add(n.id)
+
+            for c in n.children:
+                if c.id not in visited and self.detect_cycles_util(c, visited, rec_stack):
+                    return True
+                elif c.id in rec_stack:
+                    return True
+        rec_stack.remove(n.id)
+        return False
+
+    def detect_cycles_rec(self) -> bool:
+        visited = set()
+        rec_stack = set()
+        for n in self.nodes:
+            if n.id not in visited and self.detect_cycles_util(n, visited, rec_stack):
+                return True
+        return False
+
+    def detect_cycles_iter(self) -> bool:
+        visited = set()
+        for node in self.nodes:
+            if node.id in visited:
+                continue
+            stack = [node]
+            ancestors = set()
+            while stack:
+                n = stack.pop()
+                if n.id not in visited:
+                    ancestors.add(n.id)
+                    visited.add(n.id)
+                    stack.append(n)
+                    for c in n.children:
+                        if c.id not in visited:
+                            stack.append(c)
+                        elif c.id in ancestors:
+                            return True
+                else:
+                    ancestors.discard(n.id)
+
+        return False
 
 def dfs(root: Node) -> List[int]:
     """DFS recursive
@@ -65,7 +103,7 @@ def dfs(root: Node) -> List[int]:
             visited_list.extend(dfs(node))
     return visited_list
 
-def dfs_stack(root: Node) -> List[int]:
+def dfs_iter(root: Node) -> List[int]:
     """DFS non recursive
 
     Args:
@@ -117,6 +155,117 @@ def bfs(root: Node) -> List[int]:
 
 class TestGraph(unittest.TestCase):
 
+    def test_detect_cycles(self):
+        n0 = Node(0, [])
+        n1 = Node(1, [])
+        n2 = Node(2, [])
+        n3 = Node(3, [])
+        n0.add_child(n1, n2)
+        n1.add_child(n2)
+        n2.add_child(n0, n3)
+        g = Graph([n0, n1, n2, n3])
+        self.assertTrue(g.detect_cycles_iter())
+        self.assertTrue(g.detect_cycles_rec())
+
+        n0 = Node(0, [])
+        n1 = Node(1, [])
+        n2 = Node(2, [])
+        n3 = Node(3, [])
+        n4 = Node(4, [])
+        n5 = Node(5, [])
+        n0.add_child(n1, n4, n5)
+        n1.add_child(n3, n4)
+        n3.add_child(n2, n4)
+        g = Graph([n0, n1, n2, n3, n4, n5])
+        self.assertFalse(g.detect_cycles_iter())
+        self.assertFalse(g.detect_cycles_rec())
+
+        n0 = Node(0, [])
+        n1 = Node(1, [])
+        n2 = Node(2, [])
+        n3 = Node(3, [])
+        n4 = Node(4, [])
+        n0.add_child(n1)
+        n1.add_child(n2)
+        n2.add_child(n3)
+        n3.add_child(n4)
+        n4.add_child(n3)
+        g = Graph([n0, n1, n2, n3, n4])
+        self.assertTrue(g.detect_cycles_iter())
+        self.assertTrue(g.detect_cycles_rec())
+
+        n0 = Node(0, [])
+        n1 = Node(1, [])
+        n2 = Node(2, [])
+        n3 = Node(3, [])
+        n4 = Node(4, [])
+        n5 = Node(5, [])
+        n6 = Node(6, [])
+        n7 = Node(7, [])
+        n0.add_child(n1, n2)
+        n1.add_child(n3, n4)
+        n2.add_child(n5, n6)
+        n6.add_child(n7)
+        n7.add_child(n0)
+        g = Graph([n0, n1, n2, n3, n4, n5, n6, n7])
+        self.assertTrue(g.detect_cycles_iter())
+        self.assertTrue(g.detect_cycles_rec())
+
+        n0 = Node(0, [])
+        n1 = Node(1, [])
+        n2 = Node(2, [])
+        n3 = Node(3, [])
+        n4 = Node(4, [])
+        n5 = Node(5, [])
+        n6 = Node(6, [])
+        n7 = Node(7, [])
+        n0.add_child(n1, n2)
+        n1.add_child(n3, n4)
+        n2.add_child(n1)
+        g = Graph([n0, n1, n2, n3, n4])
+        self.assertFalse(g.detect_cycles_iter())
+        self.assertFalse(g.detect_cycles_rec())
+
+        # separated trees
+        # 1. both no cycles,
+        # 2. both cycles,
+        # 3. one with cycle, one w/o
+        n0 = Node(0, [])
+        n1 = Node(1, [n0])
+        n2 = Node(2, [n1])
+
+        n3 = Node(3, [])
+        n4 = Node(4, [n3])
+        n5 = Node(5, [n4])
+        g = Graph([n0, n1, n2, n3, n4, n5])
+        self.assertFalse(g.detect_cycles_iter())
+        self.assertFalse(g.detect_cycles_rec())
+
+        n0 = Node(0, [])
+        n1 = Node(1, [n0])
+        n2 = Node(2, [n1])
+        n0.add_child(n2)
+
+        n3 = Node(3, [])
+        n4 = Node(4, [n3])
+        n5 = Node(5, [n4])
+        n3.add_child(n5)
+        g = Graph([n0, n1, n2, n3, n4, n5])
+        self.assertTrue(g.detect_cycles_iter())
+        self.assertTrue(g.detect_cycles_rec())
+
+        n0 = Node(0, [])
+        n1 = Node(1, [n0])
+        n2 = Node(2, [n1])
+
+        n3 = Node(3, [])
+        n4 = Node(4, [n3])
+        n5 = Node(5, [n4])
+        n3.add_child(n5)
+        g = Graph([n0, n1, n2, n3, n4, n5])
+        self.assertTrue(g.detect_cycles_iter())
+        self.assertTrue(g.detect_cycles_rec())
+
     def test_basic_graph_creation(self):
         n0 = Node(0, [])
         n1 = Node(1, [])
@@ -149,7 +298,7 @@ class TestGraph(unittest.TestCase):
         result: List[int] = dfs(n0)
         self.assertEqual(result, [0, 1, 3, 2, 4, 5])
 
-    def test_dfs_stack(self):
+    def test_dfs_iter(self):
         n0 = Node(0, [])
         n1 = Node(1, [])
         n2 = Node(2, [])
@@ -161,12 +310,12 @@ class TestGraph(unittest.TestCase):
         n0.add_child(n1, n4, n5)
         n1.add_child(n3, n4)
         n3.add_child(n2, n4)
-        self.assertEqual(dfs_stack(n0), [0, 5, 4, 1, 3, 2])
+        self.assertEqual(dfs_iter(n0), [0, 5, 4, 1, 3, 2])
         n4.add_child(n6)
         n5.add_child(n7)
         g = Graph([n0, n1, n2, n3, n4, n5, n6, n7])
         g.reset_visited()
-        self.assertEqual(dfs_stack(n0), [0, 5, 7, 4, 6, 1, 3, 2])
+        self.assertEqual(dfs_iter(n0), [0, 5, 7, 4, 6, 1, 3, 2])
 
     def test_bfs(self):
         n0 = Node(0, [])
@@ -189,7 +338,7 @@ class TestGraph(unittest.TestCase):
     
     def test_raise_type_error(self):
         self.assertRaises(TypeError, dfs, None)
-        self.assertRaises(TypeError, dfs_stack, None)
+        self.assertRaises(TypeError, dfs_iter, None)
         self.assertRaises(TypeError, bfs, None)
 
 
