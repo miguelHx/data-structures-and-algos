@@ -39,6 +39,22 @@ class Graph:
             node.visited = False
 
     def detect_cycles_util(self, n: Node, visited: Set, rec_stack: Set) -> bool:
+        """detects cycles in a graph given a starting node.
+        other arguments for sharing data throughout recursive calls
+        time:
+            O(N + C) where N is the # of nodes in the graph
+            and C is the # of children per node, aka edges in adjacency list
+        space:
+            O(N)
+
+        Args:
+            n (Node): node from graph
+            visited (Set): visited nodes
+            rec_stack (Set): ancestor nodes
+
+        Returns:
+            bool: whether or not a cycle exists
+        """
         if n.id not in visited:
             visited.add(n.id)
             rec_stack.add(n.id)
@@ -52,6 +68,17 @@ class Graph:
         return False
 
     def detect_cycles_rec(self) -> bool:
+        """detects cycles in a graph.
+        The graph can have separated forests
+        time:
+            O(N + C) where N is the # of nodes in the graph
+            and C is the # of children per node, aka edges in adjacency list
+        space:
+            O(N)
+
+        Returns:
+            bool: whether or not a cycle exists
+        """
         visited = set()
         rec_stack = set()
         for n in self.nodes:
@@ -60,6 +87,12 @@ class Graph:
         return False
 
     def detect_cycles_iter(self) -> bool:
+        """iterative version of detect_cycles_rec.
+        Same time and space complexity.
+
+        Returns:
+            bool: whether a cycle exists
+        """
         visited = set()
         for node in self.nodes:
             if node.id in visited:
