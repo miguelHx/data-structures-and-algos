@@ -7,7 +7,15 @@ class TrieNode:
     def __init__(self):
         self.children = defaultdict(TrieNode)
         self.is_leaf = False
+        self._prefix = '__ROOT__'
 
+    @property
+    def prefix(self):
+        return ''.join(self._prefix)
+
+    @prefix.setter
+    def prefix(self, value):
+        self._prefix = value
 
 class Trie:
     def __init__(self):
@@ -27,9 +35,13 @@ class Trie:
             word (str): _description_
         """
         current = self.root
+        letters = []
         for letter in word:
             current = current.children[letter]
+            letters.append(letter)
+            current.prefix = ''.join(letters)
         current.is_leaf = True
+        current.prefix = ''.join(letters)
         self._word_count += 1
 
     def search(self, word: str) -> bool:
