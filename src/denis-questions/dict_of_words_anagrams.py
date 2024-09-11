@@ -4,11 +4,12 @@ Write a function that takes in a string and returns all possible anagrams of tha
 For example, for "levity" it should produce "let ivy", "tel ivy", "levy it" (assuming all 3 of them are in your dictionary).
 """
 
-
+import copy
+import sys
 import unittest
 from typing import List, Set, Dict
-from itertools import permutations, combinations
-from collections import Counter
+from itertools import permutations, combinations, product
+from collections import Counter, defaultdict
 from .trie import TrieNode, Trie
 
 
@@ -49,6 +50,95 @@ def _find_anagram_combos(s: str, lst: List[str]) -> Set[str]:
             if _is_anagram(s, cs):
                 output.add(cs)
     return output
+
+
+# arr - array to store the combination
+# index - next location in array
+# num - given number
+# reducedNum - reduced number 
+def findCombinationsUtil(arr, index, num, reducedNum):
+    output = []
+    # Base condition
+    if (reducedNum < 0):
+        return []
+
+    # If combination is 
+    # found, print it
+    if (reducedNum == 0):
+        combo_numbers = []
+        for i in range(index):
+            combo_numbers.append(arr[i])
+        return [combo_numbers]
+
+    # Find the previous number stored in arr[]. 
+    # It helps in maintaining increasing order
+    prev = 1 if(index == 0) else arr[index - 1]
+
+    # note loop starts from previous 
+    # number i.e. at array location
+    # index - 1
+    for k in range(prev, num + 1):
+        # next element of array is k
+        arr[index] = k
+
+        # call recursively with
+        # reduced number
+        output.extend(findCombinationsUtil(arr, index + 1, num, reducedNum - k))
+    return output
+
+# Function to find out all 
+# combinations of positive numbers 
+# that add upto given number.
+# It uses findCombinationsUtil() 
+def findCombinations(n):
+    # array to store the combinations
+    # It can contain max n elements
+    arr = [0] * n
+    # find all combinations
+    return findCombinationsUtil(arr, 0, n, n)
+
+def _find_anagram_combos_optimized(s: str, words: List[str], combo_sets: List[List[int]]) -> Set[str]:
+    """finds all possible combos that add up to length of s.
+    this algo will put words into buckets associated with
+    their lengths. Then will iterate over the combo_sets list,
+    using each number in subarrays to key the bucket and check
+    for anagrams
+    
+    Runtime:
+        O(2^s * Product of b[i] in k arrays * s * l * log(l))
+        where s is the length of input string s,
+        k is the average length of combo subsets,
+        b[i] is the number of words in each bucket
+        grouped by word length,
+        and l is the average length of each cartesian product
+        check operation
+    Space: O(w) where w is # of words in dictionary
+
+    Args:
+        s (str): string to find subset word anagrams of
+        lst (List[str]): list of words in s
+        combo_sets (List[List[int]]): list of combos that add up to len(s)
+
+    Returns:
+        Set[str]:
+            list of anagrams found in s from words in lst.
+            including multi-word anagrams
+    """
+    anagrams = set()
+    buckets = defaultdict(list)
+    for w in words:
+        buckets[len(w)].append(w)
+    
+    for curr_combo_set in combo_sets:
+        s_copy = copy.copy(s)
+        curr_combo_buckets = [buckets[num] for num in curr_combo_set]
+        # cartesian product look for anagrams
+        for cartesian_product_as_tuple in product(*curr_combo_buckets):
+            combo = ''.join(map(str, sorted(cartesian_product_as_tuple)))
+            if _is_anagram(s, combo):
+                anagrams.add(combo)
+    return anagrams
+        
 
 def dfs_trie(root: TrieNode, pool: Dict[str, int]) -> List[str]:
     """similar to a graph dfs, we will
@@ -212,6 +302,19 @@ class TestFindAnagrams(unittest.TestCase):
     def test_find_anagram_combos(self):
         for s, lst, expected in self.find_anagrams_combos_cases:
             self.assertEqual(_find_anagram_combos(s, lst), expected, msg=(s, lst, expected))
+
+    def test_find_anagram_combos_optimized(self):
+        s = 'levity'
+        words = ['it', 'let', 'ivy', 'tel', 'levi', 'levy']
+        expected = set(['ivylet', 'itlevy', 'ivytel'])
+        combo_sets = findCombinations(len(s))
+        self.assertEqual(_find_anagram_combos_optimized(s, words, combo_sets), expected, msg=(s, words))
+        
+        s = 'todhae'
+        words = ['deal', 'dear', 'do', 'heat', 'hen', 'he', 'eat', 'tea']
+        expected = set(['doheat'])
+        combo_sets = findCombinations(len(s))
+        self.assertEqual(_find_anagram_combos_optimized(s, words, combo_sets), expected, msg=(s, words))
 
     def test_find_words_with_trie(self):
         """building trie data structure ahead of time:
