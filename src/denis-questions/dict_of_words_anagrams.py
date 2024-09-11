@@ -4,7 +4,6 @@ Write a function that takes in a string and returns all possible anagrams of tha
 For example, for "levity" it should produce "let ivy", "tel ivy", "levy it" (assuming all 3 of them are in your dictionary).
 """
 
-import copy
 import sys
 import unittest
 from typing import List, Set, Dict
@@ -130,7 +129,6 @@ def _find_anagram_combos_optimized(s: str, words: List[str], combo_sets: List[Li
         buckets[len(w)].append(w)
     
     for curr_combo_set in combo_sets:
-        s_copy = copy.copy(s)
         curr_combo_buckets = [buckets[num] for num in curr_combo_set]
         # cartesian product look for anagrams
         for cartesian_product_as_tuple in product(*curr_combo_buckets):
