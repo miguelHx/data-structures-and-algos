@@ -124,6 +124,45 @@ class TestHash(unittest.TestCase):
         ht.remove("apple")
         # Check the size of the hash table
         self.assertEqual(len(ht), 2)
+    
+    def test_hash(self):
+        ht = HashTable(5)
+        self.assertEqual(ht._hash(1), 1)
+        self.assertEqual(ht._hash(6), 1)
+        self.assertEqual(ht._hash(2), 2)
+        self.assertEqual(ht._hash(7), 2)
+        self.assertEqual(ht._hash(0), 0)
+        self.assertEqual(ht._hash(5), 0)
+
+    def test_insert_with_collision(self):
+        ht = HashTable(4)
+        self.assertEqual(len(ht), 0)
+        ht.insert(0, 'test')
+        self.assertEqual(len(ht), 1)
+        self.assertEqual(str(ht), "[(0, 'test')]")
+        ht.insert(1, 'test')
+        self.assertEqual(len(ht), 2)
+        self.assertEqual(str(ht), "[(0, 'test'), (1, 'test')]")
+        ht.insert(4, 'test2')
+        self.assertEqual(len(ht), 3)
+        self.assertEqual(str(ht), "[(4, 'test2'), (0, 'test'), (1, 'test')]")
+
+    def test_search(self):
+        ht = HashTable(4)
+        ht.insert(0, 'test')
+        self.assertEqual(ht.search(0), 'test')
+        ht.insert(1, 'test2')
+        self.assertEqual(ht.search(1), 'test2')
+        self.assertRaises(KeyError, ht.search, 3)
+    
+    def test_remove(self):
+        ht = HashTable(4)
+        ht.insert(0, 0)
+        ht.insert(1, 1)
+        self.assertEqual(len(ht), 2)
+        ht.remove(1)
+        self.assertEqual(len(ht), 1)
+        self.assertRaises(KeyError, ht.remove, 3)
 
 if __name__ == '__main__':
     unittest.main()
