@@ -32,6 +32,17 @@ class HashTable:
     def _hash(self, key):
         return hash(key) % self.capacity
 
+    def _rehash(self):
+        """
+        double capacity when hashtable is full
+        """
+        new_ht = HashTable(self.capacity * 2)
+        for node in self.table:
+            if node:
+                new_ht.insert(node.key, node.value)
+        self.capacity *= 2
+        self.table = new_ht.table
+
     def insert(self, key, value):
         index = self._hash(key)
 
@@ -50,6 +61,8 @@ class HashTable:
             new_node.next = self.table[index]
             self.table[index] = new_node
             self.size += 1
+        if self.size == self.capacity:
+            self._rehash()
 
     def search(self, key):
         index = self._hash(key)
@@ -163,6 +176,20 @@ class TestHash(unittest.TestCase):
         ht.remove(1)
         self.assertEqual(len(ht), 1)
         self.assertRaises(KeyError, ht.remove, 3)
+    
+    def test_rehash(self):
+        ht = HashTable(4)
+        ht.insert(0, 0)
+        ht.insert(1, 1)
+        ht.insert(2, 2)
+        self.assertEqual(ht.capacity, 4)
+        self.assertEqual(len(ht), 3)
+        self.assertEqual(len(ht.table), 4)
+        ht.insert(3, 3)
+        self.assertEqual(ht.capacity, 8)
+        self.assertEqual(len(ht), 4)
+        self.assertEqual(len(ht.table), 8)
+
 
 if __name__ == '__main__':
     unittest.main()
