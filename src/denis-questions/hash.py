@@ -30,6 +30,8 @@ class HashTable:
         self.table = [None] * capacity
 
     def _hash(self, key):
+        if isinstance(key, list):
+            return hash(tuple(key)) % self.capacity
         return hash(key) % self.capacity
 
     def _rehash(self):
@@ -189,6 +191,13 @@ class TestHash(unittest.TestCase):
         self.assertEqual(ht.capacity, 8)
         self.assertEqual(len(ht), 4)
         self.assertEqual(len(ht.table), 8)
+
+    def test_list_as_key(self):
+        ht = HashTable(4)
+        ht.insert([1, 2], 3)
+        ht.insert([3, 4], 5)
+        self.assertEqual(ht.search([1, 2]), 3)
+        self.assertEqual(ht.search([3, 4]), 5)
 
 
 if __name__ == '__main__':
